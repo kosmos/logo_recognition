@@ -21,6 +21,7 @@ class ImageDataSet(AbstractDataSet):
         self._filepath = PurePosixPath(path)
         self._fs = fsspec.filesystem(self._protocol)
 
+
     def _load(self) -> np.ndarray:
         """Loads data from the image file.
 
@@ -32,3 +33,15 @@ class ImageDataSet(AbstractDataSet):
         with self._fs.open(load_path) as f:
             image = Image.open(f).convert("RGBA")
             return np.asarray(image)
+
+    def _save(self, data: np.ndarray) -> None:
+        """Saves image data to the specified filepath."""
+        # using get_filepath_str ensures that the protocol and path are appended correctly for different filesystems
+        save_path = get_filepath_str(self._filepath, self._protocol)
+        with self._fs.open(save_path, "wb") as f:
+            image = Image.fromarray(data)
+            image.save(f)
+
+    def _describe(self) -> Dict[str, Any]:
+        """Returns a dict that describes the attributes of the dataset."""
+        return dict(filepath=self._filepath, protocol=self._protocol)
